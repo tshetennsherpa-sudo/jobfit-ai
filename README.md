@@ -1,5 +1,7 @@
 # 🎯 JobFit AI
 
+## Live Site: https://jobready-ai.streamlit.app/
+
 > **Hackathon Project** — Instantly analyze how well your resume matches a job description.
 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://streamlit.io)
