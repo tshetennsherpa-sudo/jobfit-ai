@@ -13,6 +13,7 @@
 | **Gap Analysis** | Matched / Partial / Missing skills + experience gaps |
 | **Cover Letter** | Auto-generated, editable, company-specific letter |
 | **Download Files** | 3 separate `.docx` files — report, cover letter & resume |
+| **Application Tracker** | Save applications to Supabase — persists across sessions |
 
 ### Score Legend
 | Score | Verdict |
@@ -36,22 +37,32 @@ cd jobfit-ai
 pip install -r requirements.txt
 ```
 
-### 3. Set your Gemini API key
-**Option A — Streamlit secrets (recommended for Streamlit Community Cloud)**
-
+### 3. Set your API keys
 Create `.streamlit/secrets.toml`:
 ```toml
 GEMINI_API_KEY = "your-gemini-api-key"
-```
-
-**Option B — Environment variable**
-```bash
-export GEMINI_API_KEY="your-gemini-api-key"
+SUPABASE_URL = "https://your-project-id.supabase.co"
+SUPABASE_KEY = "your-supabase-anon-key"
 ```
 
 > 🔑 Get your free Gemini API key at [aistudio.google.com](https://aistudio.google.com)
+> 🗄️ Get your free Supabase project at [supabase.com](https://supabase.com)
 
-### 4. Run
+### 4. Set up Supabase table
+Create a table called `applications` with these columns:
+
+| Column | Type |
+|---|---|
+| `id` | int8 (primary key, auto) |
+| `created_at` | timestamp (auto) |
+| `company` | text |
+| `applicant` | text |
+| `score` | int2 |
+| `status` | text |
+| `notes` | text |
+| `date_applied` | date |
+
+### 5. Run
 ```bash
 streamlit run app.py
 ```
@@ -64,8 +75,10 @@ streamlit run app.py
 2. Go to [share.streamlit.io](https://share.streamlit.io) → **New app**
 3. Select your repo and `app.py`
 4. Under **Advanced settings → Secrets**, add:
-   ```
+   ```toml
    GEMINI_API_KEY = "your-gemini-api-key"
+   SUPABASE_URL = "https://your-project-id.supabase.co"
+   SUPABASE_KEY = "your-supabase-anon-key"
    ```
 5. Click **Deploy** 🎉
 
@@ -86,6 +99,7 @@ jobfit-ai/
 ## 🛠️ Tech Stack
 - **Frontend/Backend**: [Streamlit](https://streamlit.io)
 - **AI Engine**: [Google Gemini](https://aistudio.google.com) (`gemini-2.5-flash`)
+- **Database**: [Supabase](https://supabase.com) (PostgreSQL)
 - **Report Generation**: `python-docx`
 
 ---
