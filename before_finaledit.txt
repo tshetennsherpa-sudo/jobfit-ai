@@ -1,5 +1,5 @@
 import streamlit as st
-import google.generativeai as genai
+import anthropic
 import json
 import io
 import re
@@ -8,8 +8,7 @@ from datetime import datetime
 
 try:
     from docx import Document
-    from docx.shared import Pt, RGBColor, Inches
-    from docx.oxml import parse_xml
+    from docx.shared import Pt, RGBColor
     from docx.enum.text import WD_ALIGN_PARAGRAPH
     DOCX_OK = True
 except ImportError:
@@ -297,12 +296,11 @@ def extract_text(uploaded_file) -> str:
     return ""
 
 
-# ── Gemini analysis ──────────────────────────────────────────────────────────
+# ── Claude analysis ───────────────────────────────────────────────────────────
 def analyze(resume: str, jd: str) -> dict:
-    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    model = genai.GenerativeModel("gemini-2.5-flash")
+    client = anthropic.Anthropic()
     prompt = f"""You are an expert ATS system and career coach.
-Analyze the Resume vs Job Description and return ONLY valid JSON — no markdown, no explanation, no code fences.
+Analyze the Resume vs Job Description and return ONLY valid JSON — no markdown, no explanation.
 
 RESUME:
 {resume}
@@ -326,8 +324,12 @@ Return exactly this JSON:
   "improvement_suggestions": ["suggestion1","suggestion2","suggestion3"],
   "cover_letter": "<full professional cover letter 3-4 paragraphs, no placeholder brackets, signed with applicant name>"
 }}"""
-    response = model.generate_content(prompt)
-    raw = response.text.strip()
+    msg = client.messages.create(
+        model="claude-sonnet-4-20250514",
+        max_tokens=4000,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    raw = msg.content[0].text.strip()
     raw = re.sub(r"^```(?:json)?\s*", "", raw)
     raw = re.sub(r"\s*```$", "", raw)
     return json.loads(raw)
@@ -346,331 +348,58 @@ def score_meta(score):
                "Key requirements are missing. Upskill first, or apply knowing you will need to learn fast."
 
 
-# ── DOCX helpers ──────────────────────────────────────────────────────────────
-def _set_cell_bg(cell, hex_color):
-    """Set table cell background color."""
-    from docx.oxml.ns import qn
-    shading = parse_xml(f'<w:shd {cell._element.nsmap["w"]} w:val="clear" w:color="auto" w:fill="{hex_color}"/>')
-    cell._element.tcPr.append(shading)
-
-def _add_divider(doc, color="2563EB"):
-    """Add a colored horizontal rule."""
-    from docx.oxml.ns import qn
-    p = doc.add_paragraph()
-    pPr = p._element.get_or_add_pPr()
-    pBdr = parse_xml(f'<w:pBdr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:bottom w:val="single" w:sz="6" w:space="1" w:color="{color}"/></w:pBdr>')
-    pPr.append(pBdr)
-    return p
-
-def _doc_header(doc, title, subtitle, applicant, company, date_str):
-    """Add branded header to any document."""
-    # Top accent bar via first paragraph border
-    accent = doc.add_paragraph()
-    accent.paragraph_format.space_after = Pt(0)
-    from docx.oxml.ns import qn
-    pPr = accent._element.get_or_add_pPr()
-    pBdr = parse_xml('<w:pBdr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:top w:val="single" w:sz="24" w:space="1" w:color="2563EB"/></w:pBdr>')
-    pPr.append(pBdr)
-
-    # Title
-    p = doc.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p.paragraph_format.space_before = Pt(8)
-    p.paragraph_format.space_after = Pt(2)
-    run = p.add_run("🎯  " + title)
-    run.font.name = "Calibri"
-    run.font.size = Pt(22)
-    run.font.bold = True
-    run.font.color.rgb = RGBColor(0x1A, 0x1D, 0x2E)
-
-    # Subtitle
-    if subtitle:
-        s = doc.add_paragraph()
-        s.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        s.paragraph_format.space_after = Pt(4)
-        sr = s.add_run(subtitle)
-        sr.font.name = "Calibri"
-        sr.font.size = Pt(11)
-        sr.font.color.rgb = RGBColor(0x64, 0x74, 0x8B)
-
-    # Meta info row
-    meta = doc.add_paragraph()
-    meta.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    meta.paragraph_format.space_after = Pt(2)
-    mr = meta.add_run(f"👤 {applicant}   |   🏢 {company}   |   📅 {date_str}")
-    mr.font.name = "Calibri"
-    mr.font.size = Pt(10)
-    mr.font.color.rgb = RGBColor(0x64, 0x74, 0x8B)
-
-    _add_divider(doc)
-
-def _section_heading(doc, text, color_rgb=(37, 99, 235)):
-    """Add a colored section heading."""
-    p = doc.add_paragraph()
-    p.paragraph_format.space_before = Pt(12)
-    p.paragraph_format.space_after = Pt(4)
-    run = p.add_run(text)
-    run.font.name = "Calibri"
-    run.font.size = Pt(13)
-    run.font.bold = True
-    run.font.color.rgb = RGBColor(*color_rgb)
-    return p
-
-def _body_text(doc, text, italic=False, color_rgb=None):
-    p = doc.add_paragraph()
-    p.paragraph_format.space_after = Pt(3)
-    run = p.add_run(text)
-    run.font.name = "Calibri"
-    run.font.size = Pt(11)
-    run.font.italic = italic
-    if color_rgb:
-        run.font.color.rgb = RGBColor(*color_rgb)
-    return p
-
-def _skills_table(doc, items, bg_color, text_color_rgb):
-    """Render a list of skills as a compact wrapped table row."""
-    from docx.oxml.ns import qn
-    if not items:
-        return
-    # 3-column table
-    cols = 3
-    rows_needed = (len(items) + cols - 1) // cols
-    table = doc.add_table(rows=rows_needed, cols=cols)
-    table.style = "Table Grid"
-    col_w = 3120  # DXA ~2.17 inches each, 3 cols = ~6.5 inches
-    for r_idx in range(rows_needed):
-        for c_idx in range(cols):
-            cell = table.cell(r_idx, c_idx)
-            item_idx = r_idx * cols + c_idx
-            cell.width = Inches(2.17)
-            # Background
-            tc = cell._tc
-            tcPr = tc.get_or_add_tcPr()
-            shd = parse_xml(f'<w:shd xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" w:val="clear" w:color="auto" w:fill="{bg_color}"/>')
-            tcPr.append(shd)
-            if item_idx < len(items):
-                p = cell.paragraphs[0]
-                p.paragraph_format.space_before = Pt(3)
-                p.paragraph_format.space_after = Pt(3)
-                run = p.add_run(items[item_idx])
-                run.font.name = "Calibri"
-                run.font.size = Pt(10)
-                run.font.color.rgb = RGBColor(*text_color_rgb)
-            else:
-                # Empty cell — clear borders
-                cell.paragraphs[0].add_run("")
-    doc.add_paragraph().paragraph_format.space_after = Pt(4)
-
-
-def _add_footer(doc, left_text, right_text):
-    """Add page footer with left and right text."""
-    from docx.oxml.ns import qn
-    section = doc.sections[0]
-    footer = section.footer
-    ft = footer.paragraphs[0]
-    ft.clear()
-    ft.paragraph_format.space_before = Pt(0)
-    # Left side
-    lr = ft.add_run(left_text)
-    lr.font.size = Pt(9)
-    lr.font.color.rgb = RGBColor(0x94, 0xA3, 0xB8)
-    lr.font.name = "Calibri"
-    # Tab to right
-    ft.add_run("\t")
-    # Right side
-    rr = ft.add_run(right_text)
-    rr.font.size = Pt(9)
-    rr.font.color.rgb = RGBColor(0x94, 0xA3, 0xB8)
-    rr.font.name = "Calibri"
-    # Tab stop at right margin
-    pPr = ft._element.get_or_add_pPr()
-    tabs = parse_xml('<w:tabs xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:tab w:val="right" w:pos="9360"/></w:tabs>')
-    pPr.append(tabs)
-
-
 # ── DOCX builders ─────────────────────────────────────────────────────────────
 def build_report_docx(score, gap, company):
     doc = Document()
-
-    # Page margins
-    section = doc.sections[0]
-    section.top_margin    = Inches(1)
-    section.bottom_margin = Inches(1)
-    section.left_margin   = Inches(1)
-    section.right_margin  = Inches(1)
-
-    applicant = gap.get("applicant_name", "Applicant")
-    date_str  = datetime.now().strftime("%B %d, %Y")
-
-    # Header
-    _doc_header(doc, "JobFit AI — Match Report", "AI-Powered Resume Analysis", applicant, company, date_str)
-
-    # Score section
-    _, label, advice = score_meta(score)
-    if score >= 80:
-        score_bg, score_fg = "D1FAE5", (6, 95, 70)
-    elif score >= 60:
-        score_bg, score_fg = "FEF3C7", (120, 53, 15)
-    else:
-        score_bg, score_fg = "FEE2E2", (127, 29, 29)
-
-    _section_heading(doc, "📊  Match Score", color_rgb=(37, 99, 235))
-
-    # Score box as 1-cell table
-    score_table = doc.add_table(rows=1, cols=1)
-    score_table.style = "Table Grid"
-    cell = score_table.cell(0, 0)
-    cell.width = Inches(6.5)
-    tc = cell._tc
-    tcPr = tc.get_or_add_tcPr()
-    shd = parse_xml(f'<w:shd xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" w:val="clear" w:color="auto" w:fill="{score_bg}"/>')
-    tcPr.append(shd)
-
-    sp = cell.paragraphs[0]
-    sp.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    sp.paragraph_format.space_before = Pt(8)
-    sr = sp.add_run(f"{score}%  —  {label}")
-    sr.font.name = "Calibri"
-    sr.font.size = Pt(24)
-    sr.font.bold = True
-    sr.font.color.rgb = RGBColor(*score_fg)
-
-    sp2 = cell.add_paragraph()
-    sp2.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    sp2.paragraph_format.space_after = Pt(8)
-    sr2 = sp2.add_run(advice)
-    sr2.font.name = "Calibri"
-    sr2.font.size = Pt(11)
-    sr2.font.color.rgb = RGBColor(*score_fg)
-
+    t = doc.add_heading("JobFit AI — Match Report", 0)
+    t.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    doc.add_paragraph(f"Applicant: {gap.get('applicant_name','')}   |   Company: {company}   |   {datetime.now().strftime('%B %d, %Y')}")
     doc.add_paragraph()
-    _body_text(doc, f"Reasoning: {gap.get('score_reasoning','')}", italic=True, color_rgb=(100, 116, 139))
-    _body_text(doc, f"Education: {gap.get('education_match','')}", italic=True, color_rgb=(100, 116, 139))
-
-    _add_divider(doc, "E2E6F0")
-
-    # Matched skills
-    _section_heading(doc, "✅  Matched Skills", color_rgb=(5, 150, 105))
-    _skills_table(doc, gap.get("matched_skills", []), "D1FAE5", (6, 95, 70))
-
-    # Partial matches
-    _section_heading(doc, "⚡  Partial Matches", color_rgb=(217, 119, 6))
+    _, label, advice = score_meta(score)
+    doc.add_heading("Match Score", level=1)
+    p = doc.add_paragraph()
+    r = p.add_run(f"{score}%  —  {label}")
+    r.bold = True; r.font.size = Pt(20)
+    doc.add_paragraph(advice)
+    doc.add_paragraph(f"Reasoning: {gap.get('score_reasoning','')}")
+    doc.add_paragraph()
+    doc.add_heading("Matched Skills", level=2)
+    for s in gap.get("matched_skills", []): doc.add_paragraph(f"✅ {s}", style="List Bullet")
+    doc.add_heading("Partial Matches", level=2)
     for item in gap.get("partial_skills", []):
         if isinstance(item, dict):
-            p = doc.add_paragraph()
-            p.paragraph_format.space_after = Pt(3)
-            r1 = p.add_run(f"{item['skill']}: ")
-            r1.font.bold = True; r1.font.name = "Calibri"; r1.font.size = Pt(11)
-            r1.font.color.rgb = RGBColor(0xD9, 0x77, 0x06)
-            r2 = p.add_run(f"You have '{item['resume_level']}' — JD needs '{item['required_level']}'")
-            r2.font.name = "Calibri"; r2.font.size = Pt(11)
-            r2.font.color.rgb = RGBColor(0x37, 0x41, 0x51)
-
-    # Missing skills
-    _section_heading(doc, "❌  Missing Skills", color_rgb=(220, 38, 38))
-    _skills_table(doc, gap.get("missing_skills", []), "FEE2E2", (127, 29, 29))
-
-    _add_divider(doc, "E2E6F0")
-
-    # Experience
-    _section_heading(doc, "💼  Matching Experience", color_rgb=(5, 150, 105))
-    for e in gap.get("matched_experience", []):
-        _body_text(doc, f"• {e}")
-
-    _section_heading(doc, "📋  Experience Gaps", color_rgb=(220, 38, 38))
-    for e in gap.get("missing_experience", []):
-        _body_text(doc, f"• {e}")
-
-    _add_divider(doc, "E2E6F0")
-
-    # Strengths
-    _section_heading(doc, "💪  Key Strengths", color_rgb=(37, 99, 235))
-    for s in gap.get("strengths", []):
-        _body_text(doc, f"✨  {s}")
-
-    # Suggestions
-    _section_heading(doc, "🎯  Improvement Suggestions", color_rgb=(124, 58, 237))
-    for i, s in enumerate(gap.get("improvement_suggestions", []), 1):
-        p = doc.add_paragraph()
-        p.paragraph_format.space_after = Pt(4)
-        rn = p.add_run(f"{i}.  ")
-        rn.font.bold = True; rn.font.name = "Calibri"; rn.font.size = Pt(11)
-        rn.font.color.rgb = RGBColor(0x7C, 0x3A, 0xED)
-        rb = p.add_run(s)
-        rb.font.name = "Calibri"; rb.font.size = Pt(11)
-
-    # Footer
-    _add_footer(doc, "JobFit AI — Confidential", f"Generated {date_str}")
-
+            doc.add_paragraph(f"⚡ {item['skill']}: You have '{item['resume_level']}', JD needs '{item['required_level']}'", style="List Bullet")
+    doc.add_heading("Missing Skills", level=2)
+    for s in gap.get("missing_skills", []): doc.add_paragraph(f"❌ {s}", style="List Bullet")
+    doc.add_heading("Experience Gaps", level=2)
+    for e in gap.get("missing_experience", []): doc.add_paragraph(f"• {e}", style="List Bullet")
+    doc.add_heading("Key Strengths", level=2)
+    for s in gap.get("strengths", []): doc.add_paragraph(f"✨ {s}", style="List Bullet")
+    doc.add_heading("Improvement Suggestions", level=2)
+    for i, s in enumerate(gap.get("improvement_suggestions", []), 1): doc.add_paragraph(f"{i}. {s}")
     buf = io.BytesIO(); doc.save(buf); buf.seek(0)
     return buf.read()
 
 
 def build_coverletter_docx(cover, applicant, company):
     doc = Document()
-
-    section = doc.sections[0]
-    section.top_margin    = Inches(1)
-    section.bottom_margin = Inches(1)
-    section.left_margin   = Inches(1.2)
-    section.right_margin  = Inches(1.2)
-
-    date_str = datetime.now().strftime("%B %d, %Y")
-
-    _doc_header(doc, "Cover Letter", f"Application to {company}", applicant, company, date_str)
-
+    t = doc.add_heading("Cover Letter", 0)
+    t.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    doc.add_paragraph(f"{applicant}   |   Applying to: {company}   |   {datetime.now().strftime('%B %d, %Y')}")
     doc.add_paragraph()
-
-    # Cover letter body — each paragraph styled nicely
-    paragraphs = cover.strip().split("\n")
-    for para in paragraphs:
-        if para.strip():
-            p = doc.add_paragraph()
-            p.paragraph_format.space_after = Pt(8)
-            p.paragraph_format.first_line_indent = Inches(0)
-            run = p.add_run(para.strip())
-            run.font.name = "Calibri"
-            run.font.size = Pt(11.5)
-            run.font.color.rgb = RGBColor(0x1A, 0x1D, 0x2E)
-            p.paragraph_format.line_spacing = Pt(16)
-
-    _add_footer(doc, f"{applicant} — Cover Letter", date_str)
-
+    doc.add_paragraph(cover)
     buf = io.BytesIO(); doc.save(buf); buf.seek(0)
     return buf.read()
 
 
 def build_resume_docx(resume_text, applicant, company):
     doc = Document()
-
-    section = doc.sections[0]
-    section.top_margin    = Inches(1)
-    section.bottom_margin = Inches(1)
-    section.left_margin   = Inches(1)
-    section.right_margin  = Inches(1)
-
-    date_str = datetime.now().strftime("%B %d, %Y")
-
-    _doc_header(doc, applicant, f"Application for: {company}", applicant, company, date_str)
-
+    t = doc.add_heading(applicant, 0)
+    t.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    s = doc.add_paragraph(f"Application for: {company}")
+    s.alignment = WD_ALIGN_PARAGRAPH.CENTER
     doc.add_paragraph()
-
-    # Resume body
-    lines = resume_text.strip().split("\n")
-    for line in lines:
-        stripped = line.strip()
-        if not stripped:
-            doc.add_paragraph().paragraph_format.space_after = Pt(2)
-            continue
-        p = doc.add_paragraph()
-        p.paragraph_format.space_after = Pt(3)
-        run = p.add_run(stripped)
-        run.font.name = "Calibri"
-        run.font.size = Pt(11)
-        run.font.color.rgb = RGBColor(0x1A, 0x1D, 0x2E)
-
-    _add_footer(doc, f"{applicant} — Resume", f"Prepared for {company}  |  {date_str}")
-
+    doc.add_paragraph(resume_text)
     buf = io.BytesIO(); doc.save(buf); buf.seek(0)
     return buf.read()
 
@@ -777,10 +506,10 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Demo banner — centered with button inside
+# Demo banner
 st.markdown("""
-<div class="demo-banner" style="flex-direction:column; align-items:center; text-align:center; padding:1.4rem 2rem;">
-    <div style="font-size:2rem; margin-bottom:0.4rem">🧪</div>
+<div class="demo-banner">
+    <div style="font-size:1.8rem">🧪</div>
     <div class="demo-banner-text">
         <strong>Want to try it first?</strong>
         <p>Load a sample resume &amp; job description with one click — no upload needed.</p>
@@ -788,9 +517,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-_, demo_col, _ = st.columns([2, 1.5, 2])
-with demo_col:
-    demo_btn = st.button("▶️ Load Demo Data & Analyze", type="secondary", use_container_width=True)
+demo_btn = st.button("▶️ Load Demo Data & Analyze", type="secondary")
 
 st.markdown("---")
 
@@ -798,7 +525,7 @@ st.markdown("---")
 col1, col2 = st.columns(2)
 
 with col1:
-    st.markdown('<p style="font-size:1rem; font-weight:700; color:#2563eb; margin-bottom:0.3rem;">📄 Your Resume</p>', unsafe_allow_html=True)
+    st.markdown("**📄 Your Resume**")
     resume_file = st.file_uploader(
         "Upload Resume", type=["pdf", "docx", "txt"],
         key="resume_up", label_visibility="collapsed"
@@ -811,7 +538,7 @@ with col1:
             st.success("✅ Resume loaded successfully")
 
 with col2:
-    st.markdown('<p style="font-size:1rem; font-weight:700; color:#2563eb; margin-bottom:0.3rem;">💼 Job Description</p>', unsafe_allow_html=True)
+    st.markdown("**💼 Job Description**")
     jd_upload_tab, jd_paste_tab = st.tabs(["📁 Upload File", "📋 Paste Text"])
     jd_from_file, jd_from_paste = "", ""
     with jd_upload_tab:
