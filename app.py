@@ -5,6 +5,7 @@ import io
 import re
 import time
 from datetime import datetime
+from supabase import create_client
 
 try:
     from docx import Document
@@ -1006,3 +1007,94 @@ if st.session_state.analysis_done and st.session_state.gap_data:
                 use_container_width=True)
     else:
         st.warning("Install python-docx to enable downloads: `pip install python-docx`")
+
+    # ── Job Application Tracker (Supabase) ───────────────────────────────────
+    st.markdown("---")
+    st.markdown("#### 📋 Job Application Tracker")
+    st.caption("Save and track all your applications — persists across sessions.")
+
+    # Supabase client
+    supabase = create_client(
+        st.secrets["SUPABASE_URL"],
+        st.secrets["SUPABASE_KEY"]
+    )
+
+    # Status selector + notes
+    tr1, tr2 = st.columns([1, 2])
+    with tr1:
+        app_status = st.selectbox(
+            "Application Status",
+            ["Applied", "Interview Scheduled", "Rejected", "Offer Received"],
+            key="app_status"
+        )
+    with tr2:
+        app_notes = st.text_input(
+            "Notes (optional)",
+            placeholder="e.g. Applied via LinkedIn, referral from John...",
+            key="app_notes"
+        )
+
+    # Save button
+    if st.button("💾 Save to Tracker", use_container_width=False):
+        try:
+            supabase.table("applications").insert({
+                "company":      company,
+                "applicant":    applicant,
+                "score":        score,
+                "status":       app_status,
+                "notes":        app_notes,
+                "date_applied": datetime.now().strftime("%Y-%m-%d"),
+            }).execute()
+            st.success(f"✅ Saved! {company} added to your tracker.")
+        except Exception as e:
+            st.error(f"Failed to save: {e}")
+
+    # Show all saved applications
+    st.markdown("")
+    st.markdown("#### 📊 All Saved Applications")
+    try:
+        response = supabase.table("applications").select("*").order("date_applied", desc=True).execute()
+        data = response.data
+        if data:
+            import pandas as pd
+            df = pd.DataFrame(data)
+            # Clean up columns for display
+            df = df[["date_applied", "company", "applicant", "score", "status", "notes"]]
+            df.columns = ["Date", "Company", "Applicant", "Score (%)", "Status", "Notes"]
+            st.dataframe(df, use_container_width=True, hide_index=True)
+
+            # Update status
+            st.markdown("**✏️ Update Application Status:**")
+            up1, up2, up3 = st.columns([2, 2, 1])
+            with up1:
+                companies = [row["company"] for row in data]
+                selected_company = st.selectbox("Select Company", companies, key="update_company")
+            with up2:
+                new_status = st.selectbox(
+                    "New Status",
+                    ["Applied", "Interview Scheduled", "Rejected", "Offer Received"],
+                    key="new_status"
+                )
+            with up3:
+                st.markdown("<br>", unsafe_allow_html=True)
+                if st.button("Update", use_container_width=True):
+                    try:
+                        selected_id = next(row["id"] for row in data if row["company"] == selected_company)
+                        supabase.table("applications").update({"status": new_status}).eq("id", selected_id).execute()
+                        st.success(f"✅ Updated {selected_company} to '{new_status}'")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Update failed: {e}")
+
+            # CSV download
+            csv_bytes = df.to_csv(index=False).encode("utf-8")
+            st.download_button(
+                "⬇️ Download Tracker as CSV",
+                data=csv_bytes,
+                file_name=f"JobFit_Tracker_{datetime.now().strftime('%Y%m%d')}.csv",
+                mime="text/csv",
+            )
+        else:
+            st.info("No applications saved yet. Analyze a job and hit Save to Tracker!")
+    except Exception as e:
+        st.error(f"Could not load tracker: {e}")
