@@ -1,5 +1,5 @@
 import streamlit as st
-import google.generativeai as genai
+import google.genai as genai
 import json
 import io
 import re
@@ -300,8 +300,8 @@ def extract_text(uploaded_file) -> str:
 
 # ── Gemini analysis ──────────────────────────────────────────────────────────
 def analyze(resume: str, jd: str) -> dict:
-    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    model = genai.GenerativeModel("gemini-2.5-flash")
+    client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+
     prompt = f"""You are an expert ATS system and career coach.
 Analyze the Resume vs Job Description and return ONLY valid JSON — no markdown, no explanation, no code fences.
 
@@ -335,7 +335,7 @@ Return exactly this JSON:
   "improvement_suggestions": ["suggestion1","suggestion2","suggestion3"],
   "cover_letter": "<full professional cover letter 3-4 paragraphs, no placeholder brackets, signed with applicant name>"
 }}"""
-    response = model.generate_content(prompt)
+    response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
     raw = response.text.strip()
     raw = re.sub(r"^```(?:json)?\s*", "", raw)
     raw = re.sub(r"\s*```$", "", raw)
