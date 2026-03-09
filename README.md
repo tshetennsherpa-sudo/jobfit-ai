@@ -85,7 +85,7 @@ jobfit-ai/
 
 ## 🛠️ Tech Stack
 - **Frontend/Backend**: [Streamlit](https://streamlit.io)
-- **AI Engine**: [Google Gemini](https://aistudio.google.com) (`gemini-1.5-flash`)
+- **AI Engine**: [Google Gemini](https://aistudio.google.com) (`gemini-2.5-flash`)
 - **Report Generation**: `python-docx`
 
 ---
