@@ -304,6 +304,14 @@ def analyze(resume: str, jd: str) -> dict:
     prompt = f"""You are an expert ATS system and career coach.
 Analyze the Resume vs Job Description and return ONLY valid JSON — no markdown, no explanation, no code fences.
 
+Scoring rules — be strict and realistic:
+- 90-100%: Candidate meets every requirement perfectly, including nice-to-haves
+- 80-89%: Strong match, meets all must-haves, missing only minor nice-to-haves
+- 60-79%: Decent match but has notable gaps in required skills or experience
+- 40-59%: Significant gaps, missing several key requirements
+- Below 40%: Poor match, missing most requirements
+A score above 90% should be rare. Always penalize missing required skills, lack of experience, or missing certifications.
+
 RESUME:
 {resume}
 
