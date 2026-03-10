@@ -660,6 +660,14 @@ def build_coverletter_docx(cover, applicant, company):
     return buf.read()
 
 
+def _sanitize(text):
+    """Remove NULL bytes and control characters that break DOCX XML."""
+    import re
+    text = text.replace('', '')
+    text = re.sub(r'[--]', '', text)
+    return text
+
+
 def build_resume_docx(resume_text, applicant, company):
     doc = Document()
 
