@@ -1,5 +1,5 @@
 import streamlit as st
-import google.genai as genai
+import requests
 import json
 import io
 import re
@@ -300,7 +300,8 @@ def extract_text(uploaded_file) -> str:
 
 # ── Gemini analysis ──────────────────────────────────────────────────────────
 def analyze(resume: str, jd: str) -> dict:
-    client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+    api_key = st.secrets["GEMINI_API_KEY"]
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
 
     prompt = f"""You are an expert ATS system and career coach.
 Analyze the Resume vs Job Description and return ONLY valid JSON — no markdown, no explanation, no code fences.
@@ -335,8 +336,18 @@ Return exactly this JSON:
   "improvement_suggestions": ["suggestion1","suggestion2","suggestion3"],
   "cover_letter": "<full professional cover letter 3-4 paragraphs, no placeholder brackets, signed with applicant name>"
 }}"""
-    response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
-    raw = response.text.strip()
+    payload = {"contents": [{"parts": [{"text": prompt}]}]}
+    for attempt in range(3):
+        resp = requests.post(url, json=payload)
+        if resp.status_code == 429:
+            time.sleep(10)
+            continue
+        if not resp.ok:
+            raise Exception(f"Gemini API error {resp.status_code}: {resp.text}")
+        break
+    else:
+        raise Exception("Gemini rate limit reached. Please wait a minute and try again.")
+    raw = resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
     raw = re.sub(r"^```(?:json)?\s*", "", raw)
     raw = re.sub(r"\s*```$", "", raw)
     return json.loads(raw)
