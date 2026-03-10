@@ -301,7 +301,7 @@ def extract_text(uploaded_file) -> str:
 # ── Gemini analysis ──────────────────────────────────────────────────────────
 def analyze(resume: str, jd: str) -> dict:
     api_key = st.secrets["GEMINI_API_KEY"]
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={api_key}"
 
     prompt = f"""You are an expert ATS system and career coach.
 Analyze the Resume vs Job Description and return ONLY valid JSON — no markdown, no explanation, no code fences.
