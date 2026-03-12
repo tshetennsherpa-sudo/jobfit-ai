@@ -30,6 +30,173 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
+# ── Google Auth ──────────────────────────────────────────────────────────────
+if not st.user.is_logged_in:
+    st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap');
+html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
+.stApp, .main, [data-testid="stAppViewContainer"] { background: #f0f2f8 !important; }
+[data-testid="stHeader"] { background: #ffffff !important; border-bottom: 1px solid #dde1ef !important; }
+.block-container { padding: 2rem 2.5rem 4rem; max-width: 1100px; }
+.lp-hero {
+    background: #ffffff;
+    border: 1px solid #dde1ef;
+    border-radius: 18px;
+    padding: 3.5rem 2rem 2.8rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(37,99,235,0.06);
+    position: relative;
+    overflow: hidden;
+}
+.lp-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, #2563eb, #7c3aed, #0891b2);
+}
+.lp-hero h1 { font-family: 'DM Serif Display', serif; font-size: 3rem; color: #1a1d2e; margin: 0; }
+.lp-hero h1 span { color: #2563eb; }
+.lp-hero .tagline { color: #64748b; font-size: 1.15rem; margin-top: 0.75rem; margin-bottom: 0.5rem; }
+.lp-hero .sub { color: #94a3b8; font-size: 0.95rem; margin-bottom: 2rem; }
+.lp-features {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.lp-feature {
+    background: #ffffff;
+    border: 1px solid #dde1ef;
+    border-radius: 14px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.lp-feature .icon { font-size: 2rem; margin-bottom: 0.75rem; }
+.lp-feature h3 { font-size: 1rem; font-weight: 600; color: #1a1d2e; margin: 0 0 0.4rem; }
+.lp-feature p { font-size: 0.85rem; color: #64748b; margin: 0; }
+.lp-steps {
+    background: #ffffff;
+    border: 1px solid #dde1ef;
+    border-radius: 14px;
+    padding: 1.6rem 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.lp-steps-title { font-weight: 600; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase; color: #64748b; margin-bottom: 1rem; }
+.lp-steps-row { display: flex; align-items: center; justify-content: center; gap: 0.5rem; flex-wrap: wrap; }
+.lp-step { text-align: center; min-width: 100px; }
+.lp-step .s-icon { font-size: 1.5rem; margin-bottom: 0.3rem; }
+.lp-step .s-title { font-size: 0.8rem; font-weight: 600; color: #1a1d2e; }
+.lp-step .s-desc { font-size: 0.72rem; color: #94a3b8; }
+.lp-arrow { color: #dde1ef; font-size: 1.2rem; }
+.lp-signin {
+    background: #ffffff;
+    border: 1px solid #dde1ef;
+    border-radius: 14px;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.lp-signin p { color: #64748b; font-size: 0.9rem; margin-bottom: 1rem; }
+.lp-signin .note { color: #94a3b8; font-size: 0.78rem; margin-top: 0.75rem; }
+</style>
+""", unsafe_allow_html=True)
+
+    # Hero
+    st.markdown("""
+<div class="lp-hero">
+    <h1>🎯 <span>JobFit AI</span></h1>
+    <p class="tagline">Know your score. Apply smart.</p>
+    <p class="sub">Upload your resume &amp; job description — get an instant match score, gap analysis, and tailored cover letter.</p>
+</div>
+""", unsafe_allow_html=True)
+
+    # Features
+    st.markdown("""
+<div class="lp-features">
+    <div class="lp-feature">
+        <div class="icon">🎯</div>
+        <h3>Match Score</h3>
+        <p>Get a 0–100% score showing how well your resume matches the job description.</p>
+    </div>
+    <div class="lp-feature">
+        <div class="icon">🔍</div>
+        <h3>Gap Analysis</h3>
+        <p>See exactly which skills and experience you have, partially have, or are missing.</p>
+    </div>
+    <div class="lp-feature">
+        <div class="icon">✉️</div>
+        <h3>Cover Letter</h3>
+        <p>Get a tailored cover letter generated instantly — ready to send or customize.</p>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+    # How it works
+    st.markdown("""
+<div class="lp-steps">
+    <div class="lp-steps-title">How it works</div>
+    <div class="lp-steps-row">
+        <div class="lp-step">
+            <div class="s-icon">📄</div>
+            <div class="s-title">Upload Resume</div>
+            <div class="s-desc">PDF, DOCX or TXT</div>
+        </div>
+        <div class="lp-arrow">→</div>
+        <div class="lp-step">
+            <div class="s-icon">💼</div>
+            <div class="s-title">Add Job Description</div>
+            <div class="s-desc">Upload or paste it</div>
+        </div>
+        <div class="lp-arrow">→</div>
+        <div class="lp-step">
+            <div class="s-icon">🤖</div>
+            <div class="s-title">AI Analyzes</div>
+            <div class="s-desc">Compares both instantly</div>
+        </div>
+        <div class="lp-arrow">→</div>
+        <div class="lp-step">
+            <div class="s-icon">📊</div>
+            <div class="s-title">Get Your Score</div>
+            <div class="s-desc">0–100% match rating</div>
+        </div>
+        <div class="lp-arrow">→</div>
+        <div class="lp-step">
+            <div class="s-icon">⬇️</div>
+            <div class="s-title">Download Files</div>
+            <div class="s-desc">Report, cover letter &amp; resume</div>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+    # Sign in box
+    st.markdown("""
+<div class="lp-signin">
+    <p>Sign in with your Google account to get started — free, no credit card needed.</p>
+</div>
+""", unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns([1.5, 1, 1.5])
+    with col2:
+        if st.button("🔐 Sign in with Google", use_container_width=True):
+            st.login("google")
+
+    st.markdown("""
+<div style="text-align:center; color:#94a3b8; font-size:0.78rem; margin-top:0.75rem;">
+    🔒 Secure login via Google &nbsp;·&nbsp; Your data stays private &nbsp;·&nbsp; No spam ever
+</div>
+""", unsafe_allow_html=True)
+
+    st.stop()
+
+# Logged in — get user info
+user_email = st.user.email or ""
+user_name  = st.user.name or "User"
+
 # ── CSS ───────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
@@ -763,6 +930,17 @@ def run_analysis(resume_txt, jd_txt, is_demo=False):
 # UI
 # ══════════════════════════════════════════════════════════════════════════════
 
+# Top bar with user info + logout
+col_title, col_user = st.columns([4, 1])
+with col_user:
+    st.markdown(f"""
+<div style='text-align:right; padding-top:0.25rem;'>
+    <div style='color:#1a1d2e; font-size:1rem; font-weight:600;'>👤 {user_name}</div>
+    <div style='color:#94a3b8; font-size:0.78rem;'>{user_email}</div>
+</div>""", unsafe_allow_html=True)
+    if st.button("Logout", use_container_width=True):
+        st.logout()
+
 # Hero
 st.markdown("""
 <div class="hero">
@@ -1063,6 +1241,7 @@ if st.session_state.analysis_done and st.session_state.gap_data:
                 "status":       app_status,
                 "notes":        app_notes,
                 "date_applied": datetime.now().strftime("%Y-%m-%d"),
+                "user_id":      user_email,
             }).execute()
             st.success(f"✅ Saved! {company} added to your tracker.")
         except Exception as e:
@@ -1072,7 +1251,7 @@ if st.session_state.analysis_done and st.session_state.gap_data:
     st.markdown("")
     st.markdown("#### 📊 All Saved Applications")
     try:
-        response = supabase.table("applications").select("*").order("date_applied", desc=True).execute()
+        response = supabase.table("applications").select("*").eq("user_id", user_email).order("date_applied", desc=True).execute()
         data = response.data
         if data:
             import pandas as pd
