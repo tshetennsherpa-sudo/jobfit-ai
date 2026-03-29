@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import streamlit as st
 import requests
 import json
@@ -35,9 +36,9 @@ st.set_page_config(
 if not st.user.is_logged_in:
     st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,300;0,600;0,700;1,300;1,600&display=swap');
 html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
-.stApp, .main, [data-testid="stAppViewContainer"] { background: #f0f2f8 !important; }
+.stApp, .main, [data-testid="stAppViewContainer"] { background: #e8ecf5 !important; }
 [data-testid="stHeader"] { background: #ffffff !important; border-bottom: 1px solid #dde1ef !important; }
 .block-container { padding: 2rem 2.5rem 4rem; max-width: 1100px; }
 .lp-hero {
@@ -47,7 +48,7 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
     padding: 3.5rem 2rem 2.8rem;
     text-align: center;
     margin-bottom: 1.5rem;
-    box-shadow: 0 2px 8px rgba(37,99,235,0.06);
+    box-shadow: 0 8px 32px rgba(37,99,235,0.12), 0 2px 8px rgba(15,25,60,0.06);
     position: relative;
     overflow: hidden;
 }
@@ -57,8 +58,8 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
     top: 0; left: 0; right: 0; height: 4px;
     background: linear-gradient(90deg, #2563eb, #7c3aed, #0891b2);
 }
-.lp-hero h1 { font-family: 'DM Serif Display', serif; font-size: 3rem; color: #1a1d2e; margin: 0; }
-.lp-hero h1 span { color: #2563eb; }
+.lp-hero h1 { font-family: 'Fraunces', serif; font-size: 3.2rem; color: #0c1428; margin: 0; letter-spacing: -0.02em; line-height: 1.1; }
+.lp-hero h1 span { color: #2563eb; font-style: italic; }
 .lp-hero .tagline { color: #64748b; font-size: 1.15rem; margin-top: 0.75rem; margin-bottom: 0.5rem; }
 .lp-hero .sub { color: #94a3b8; font-size: 0.95rem; margin-bottom: 2rem; }
 .lp-features {
@@ -69,12 +70,14 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
 }
 .lp-feature {
     background: #ffffff;
-    border: 1px solid #dde1ef;
-    border-radius: 14px;
-    padding: 1.5rem;
+    border: 1px solid #d8dcea;
+    border-radius: 16px;
+    padding: 1.6rem 1.4rem;
     text-align: center;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    box-shadow: 0 2px 8px rgba(15,25,60,0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+.lp-feature:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(37,99,235,0.15); }
 .lp-feature .icon { font-size: 2rem; margin-bottom: 0.75rem; }
 .lp-feature h3 { font-size: 1rem; font-weight: 600; color: #1a1d2e; margin: 0 0 0.4rem; }
 .lp-feature p { font-size: 0.85rem; color: #64748b; margin: 0; }
@@ -179,7 +182,7 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
 
     col1, col2, col3 = st.columns([1.5, 1, 1.5])
     with col2:
-        if st.button("🔐 Sign in with Google", use_container_width=True):
+        if st.button("Sign in with Google", use_container_width=True, type="primary"):
             st.login("google")
 
     st.markdown("""
@@ -196,7 +199,7 @@ user_name  = st.user.name or "User"
 
 # ── Sleep state handler ───────────────────────────────────────────────────────
 if "app_initialized" not in st.session_state:
-    with st.spinner("⏳ Waking up — just a moment on first load..."):
+    with st.spinner("Waking up... just a moment on first load..."):
         time.sleep(1)
     st.session_state["app_initialized"] = True
 
@@ -212,44 +215,70 @@ st.markdown("""
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap');
 
 :root {
-    --bg:         #f0f2f8;
-    --bg2:        #e8ebf5;
+    --bg:         #e8ecf5;
     --white:      #ffffff;
-    --border:     #dde1ef;
-    --text:       #1a1d2e;
-    --muted:      #64748b;
+    --border:     #d8dcea;
+    --border2:    #c4cadf;
+    --text:       #0c1428;
+    --muted:      #5a6a85;
+    --muted2:     #8896b0;
     --primary:    #2563eb;
     --primary-lt: #eff6ff;
+    --primary-md: #bfdbfe;
     --green:      #059669;
     --amber:      #d97706;
     --red:        #dc2626;
+    --shadow-sm:  0 2px 8px rgba(15,25,60,0.08);
+    --shadow-md:  0 6px 24px rgba(37,99,235,0.12), 0 2px 8px rgba(15,25,60,0.06);
+    --shadow-lg:  0 12px 40px rgba(37,99,235,0.18), 0 4px 12px rgba(15,25,60,0.08);
+    --radius:     16px;
+    --radius-sm:  10px;
 }
 
-html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; color: var(--text); }
+html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); }
 .stApp, .main, [data-testid="stAppViewContainer"] { background: var(--bg) !important; }
+
 [data-testid="stHeader"] { background: var(--white) !important; border-bottom: 1px solid var(--border) !important; }
-.block-container { padding: 2rem 2.5rem 4rem; max-width: 1280px; }
+.block-container { padding: 2.5rem 2.5rem 4rem; max-width: 1280px; }
+
+/* animations */
+@keyframes countUp { from { opacity:0; transform:translateY(20px) scale(0.9); } to { opacity:1; transform:translateY(0) scale(1); } }
+@keyframes fadeSlideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
 
 .hero {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 2.8rem 2rem 2.2rem;
+    background: linear-gradient(135deg, #1e40af 0%, #2563eb 45%, #1d4ed8 70%, #7c3aed 100%);
+    border-radius: 24px;
+    padding: 3.5rem 2rem 3rem;
     text-align: center;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 2px 8px rgba(37,99,235,0.06);
+    margin-bottom: 1.4rem;
+    box-shadow: 0 16px 48px rgba(37,99,235,0.35), 0 4px 16px rgba(37,99,235,0.2);
     position: relative;
     overflow: hidden;
+    animation: fadeSlideUp 0.5s ease both;
 }
 .hero::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0; height: 4px;
-    background: linear-gradient(90deg, #2563eb, #7c3aed, #0891b2);
+    top: -60px; right: -60px;
+    width: 240px; height: 240px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 50%;
+    pointer-events: none;
 }
-.hero h1 { font-family: 'DM Serif Display', serif; font-size: 2.8rem; color: var(--text); margin: 0; }
-.hero h1 span { color: var(--primary); }
-.hero p { color: var(--muted); margin-top: 0.5rem; font-size: 1rem; }
+.hero::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: -40px;
+    width: 300px; height: 300px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 50%;
+    pointer-events: none;
+}
+.hero h1 { font-family: 'Fraunces', serif; font-size: 3rem; font-weight: 700; color: #ffffff; margin: 0; letter-spacing: -0.02em; line-height: 1.1; text-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+.hero h1 span { color: #93c5fd; font-style: italic; }
+.hero p { color: rgba(255,255,255,0.82); margin-top: 0.6rem; font-size: 1rem; }
+.hero-eyebrow { display:inline-block; background:rgba(255,255,255,0.15); color:rgba(255,255,255,0.9); font-size:0.68rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; padding:5px 14px; border-radius:20px; border:1px solid rgba(255,255,255,0.25); margin-bottom:1rem; }
+.hero-trust { display:flex; align-items:center; justify-content:center; gap:1.2rem; flex-wrap:wrap; margin-top:1.2rem; font-size:0.76rem; color:rgba(255,255,255,0.7); font-weight:500; }
 
 .hiw-wrap {
     background: var(--white);
@@ -293,21 +322,23 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; color: var(--te
 .demo-banner-text p { color: var(--muted); font-size: 0.8rem; margin: 2px 0 0; }
 
 .card {
-    background: var(--white); border: 1px solid var(--border); border-radius: 12px;
-    padding: 1.4rem 1.6rem; box-shadow: 0 1px 4px rgba(0,0,0,0.04); margin-bottom: 1rem;
+    background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 1.4rem 1.6rem; box-shadow: var(--shadow-sm); margin-bottom: 1rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+.card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
 .card h4 {
     font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
     letter-spacing: 0.08em; color: var(--primary); margin: 0 0 0.5rem;
 }
 .card p { color: #374151; margin: 0; font-size: 0.92rem; line-height: 1.65; }
 
-.score-wrap { border-radius: 14px; padding: 2.2rem 1.5rem; text-align: center; margin-bottom: 1rem; }
-.score-green { background: #d1fae5; border: 2px solid #059669; }
-.score-amber { background: #fef3c7; border: 2px solid #d97706; }
-.score-red   { background: #fee2e2; border: 2px solid #dc2626; }
-.score-number { font-family: 'DM Serif Display', serif; font-size: 4.5rem; line-height: 1; }
-.score-green .score-number { color: #065f46; }
+.score-wrap { border-radius: 20px; padding: 3rem 1.5rem 2.5rem; text-align: center; margin-bottom: 1rem; }
+.score-green { background: linear-gradient(135deg, #d1fae5, #a7f3d0); border: 2px solid #059669; box-shadow: 0 8px 32px rgba(5,150,105,0.2); }
+.score-amber { background: linear-gradient(135deg, #fef3c7, #fde68a); border: 2px solid #d97706; box-shadow: 0 8px 32px rgba(217,119,6,0.2); }
+.score-red   { background: linear-gradient(135deg, #fee2e2, #fecaca); border: 2px solid #dc2626; box-shadow: 0 8px 32px rgba(220,38,38,0.2); }
+.score-number { font-family: 'Fraunces', serif; font-size: 6rem; line-height: 1; letter-spacing: -0.04em; animation: countUp 0.7s cubic-bezier(0.34,1.56,0.64,1) both; }
+.score-green .score-number { color: #065f46; display: block; }
 .score-amber .score-number { color: #78350f; }
 .score-red   .score-number { color: #7f1d1d; }
 .score-label { font-size: 1.2rem; font-weight: 700; margin-top: 0.4rem; }
@@ -364,11 +395,13 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; color: var(--te
 
 /* App row card for My Applications tab */
 .app-row {
-    background: var(--white); border: 1px solid var(--border); border-radius: 12px;
-    padding: 1rem 1.4rem; margin-bottom: 0.75rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 1.1rem 1.4rem; margin-bottom: 0.75rem;
+    box-shadow: var(--shadow-sm);
     display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+.app-row:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
 .app-row-company { font-weight: 700; font-size: 1rem; color: var(--text); flex: 1; min-width: 140px; }
 .app-row-meta { font-size: 0.78rem; color: var(--muted); }
 .app-score-badge {
@@ -392,18 +425,29 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; color: var(--te
 /* Nav tabs */
 .stTabs [data-baseweb="tab-list"] { background: var(--white); border-radius: 10px; padding: 4px; gap: 4px; border: 1px solid var(--border); }
 .stTabs [data-baseweb="tab"]      { border-radius: 7px; color: var(--muted); font-weight: 600; font-size: 0.88rem; padding: 8px 20px; }
-.stTabs [aria-selected="true"]    { background: var(--primary) !important; color: #fff !important; }
+.stTabs [aria-selected="true"]    { background: linear-gradient(135deg, #2563eb, #1d4ed8) !important; color: #fff !important; box-shadow: 0 4px 12px rgba(37,99,235,0.4) !important; }
 
 [data-testid="stFileUploader"] { background: var(--white) !important; border: 2px dashed var(--border) !important; border-radius: 12px !important; }
 .stTextArea textarea { background: var(--white) !important; border: 1px solid var(--border) !important; border-radius: 10px !important; color: var(--text) !important; font-size: 0.9rem !important; }
 .stTextArea textarea:focus { border-color: var(--primary) !important; box-shadow: 0 0 0 3px rgba(37,99,235,0.1) !important; }
-.stButton > button { border-radius: 9px !important; font-weight: 600 !important; font-size: 0.9rem !important; }
+.stButton > button { border-radius: 10px !important; font-weight: 700 !important; font-size: 0.9rem !important; font-family: 'Plus Jakarta Sans', sans-serif !important; transition: all 0.2s ease !important; }
+.stButton > button:hover { transform: translateY(-2px) !important; box-shadow: 0 6px 20px rgba(37,99,235,0.3) !important; }
+.stButton > button:active { transform: translateY(0) scale(0.98) !important; }
 [data-testid="stDownloadButton"] button {
-    width: 100% !important; border-radius: 9px !important; font-weight: 600 !important;
-    background: var(--primary) !important; color: white !important; border: none !important; margin-top: 0.6rem !important;
+    width: 100% !important; border-radius: 10px !important; font-weight: 700 !important;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8) !important; color: white !important; border: none !important; margin-top: 0.6rem !important;
+    transition: all 0.2s ease !important; box-shadow: 0 4px 12px rgba(37,99,235,0.3) !important;
 }
+[data-testid="stDownloadButton"] button:hover { transform: translateY(-2px) !important; box-shadow: 0 8px 24px rgba(37,99,235,0.4) !important; }
 
 hr { border-color: var(--border) !important; margin: 1.5rem 0 !important; }
+
+h4 { font-family: 'Fraunces', serif !important; font-weight: 600 !important; letter-spacing: -0.01em !important; }
+
+[data-testid="stMetric"] { background: var(--white) !important; border: 1px solid var(--border) !important; border-radius: var(--radius-sm) !important; padding: 1.2rem !important; box-shadow: var(--shadow-sm) !important; transition: transform 0.2s ease, box-shadow 0.2s ease !important; }
+[data-testid="stMetric"]:hover { transform: translateY(-3px) !important; box-shadow: var(--shadow-md) !important; }
+[data-testid="stMetricLabel"] { font-size: 0.65rem !important; font-weight: 700 !important; text-transform: uppercase !important; letter-spacing: 0.1em !important; }
+[data-testid="stMetricValue"] { font-family: 'Fraunces', serif !important; font-size: 2.2rem !important; font-weight: 600 !important; letter-spacing: -0.02em !important; }
 
 /* Demo button flush against card */
 div[data-testid="stButton"]:has(button[kind="primary"]#demo_top) {
@@ -414,50 +458,44 @@ div[data-testid="stButton"]:has(button[kind="primary"]#demo_top) {
 """, unsafe_allow_html=True)
 
 # ── Demo data ─────────────────────────────────────────────────────────────────
-DEMO_RESUME = """John Smith
-Email: john.smith@email.com | Phone: (555) 123-4567
+DEMO_RESUME = (
+    "John Smith\n"
+    "Email: john.smith@email.com | Phone: (555) 123-4567\n\n"
+    "SUMMARY\n"
+    "Data Analyst with 4 years of experience in SQL, Python, and Power BI. "
+    "Skilled in building dashboards, data pipelines, and delivering insights to business stakeholders.\n\n"
+    "EXPERIENCE\n"
+    "Senior Data Analyst - Acme Corp (2021-Present)\n"
+    "- Built 15 or more Power BI dashboards used by 200 or more employees\n"
+    "- Wrote complex SQL queries to analyze large datasets\n"
+    "- Automated reporting with Python (pandas, matplotlib), saving 8 hrs/week\n\n"
+    "Data Analyst - StartupXYZ (2020-2021)\n"
+    "- Analyzed user behavior data using Python and Excel\n"
+    "- Created KPI reports for executive team\n\n"
+    "SKILLS\n"
+    "Python, SQL, Power BI, Excel, Tableau, pandas, numpy, data visualization, ETL pipelines\n\n"
+    "EDUCATION\n"
+    "B.S. Computer Science - State University, 2019\n"
+)
 
-SUMMARY
-Data Analyst with 4 years of experience in SQL, Python, and Power BI. Skilled in building
-dashboards, data pipelines, and delivering insights to business stakeholders.
-
-EXPERIENCE
-Senior Data Analyst — Acme Corp (2021–Present)
-- Built 15+ Power BI dashboards used by 200+ employees
-- Wrote complex SQL queries to analyze 10M+ row datasets
-- Automated reporting with Python (pandas, matplotlib), saving 8 hrs/week
-
-Data Analyst — StartupXYZ (2020–2021)
-- Analyzed user behavior data using Python and Excel
-- Created KPI reports for executive team
-
-SKILLS
-Python, SQL, Power BI, Excel, Tableau, pandas, numpy, data visualization, ETL pipelines
-
-EDUCATION
-B.S. Computer Science — State University, 2019
-"""
-
-DEMO_JD = """Company: DataDriven Inc.
-Job Title: Data Analyst
-
-We are looking for a Data Analyst to join our growing analytics team.
-
-Requirements:
-- 3+ years of experience in data analysis
-- Proficiency in SQL and Python
-- Experience with Power BI or Tableau
-- Strong communication skills
-- Experience with ETL pipelines
-- Familiarity with cloud platforms (AWS/Azure) preferred
-- Bachelor's degree in relevant field
-
-Responsibilities:
-- Build and maintain dashboards and reports
-- Collaborate with business teams to define KPIs
-- Analyze large datasets and present findings
-- Support data pipeline development
-"""
+DEMO_JD = (
+    "Company: DataDriven Inc.\n"
+    "Job Title: Data Analyst\n\n"
+    "We are looking for a Data Analyst to join our growing analytics team.\n\n"
+    "Requirements:\n"
+    "- 3 or more years of experience in data analysis\n"
+    "- Proficiency in SQL and Python\n"
+    "- Experience with Power BI or Tableau\n"
+    "- Strong communication skills\n"
+    "- Experience with ETL pipelines\n"
+    "- Familiarity with cloud platforms (AWS/Azure) preferred\n"
+    "- Bachelor degree in relevant field\n\n"
+    "Responsibilities:\n"
+    "- Build and maintain dashboards and reports\n"
+    "- Collaborate with business teams to define KPIs\n"
+    "- Analyze large datasets and present findings\n"
+    "- Support data pipeline development\n"
+)
 
 # ── Session state ─────────────────────────────────────────────────────────────
 defaults = {
@@ -496,9 +534,9 @@ def analyze(resume: str, jd: str) -> dict:
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={api_key}"
 
     prompt = f"""You are an expert ATS system and career coach.
-Analyze the Resume vs Job Description and return ONLY valid JSON — no markdown, no explanation, no code fences.
+Analyze the Resume vs Job Description and return ONLY valid JSON - no markdown, no explanation, no code fences.
 
-Scoring rules — be strict and realistic:
+Scoring rules - be strict and realistic:
 - 90-100%: Candidate meets every requirement perfectly, including nice-to-haves
 - 80-89%: Strong match, meets all must-haves, missing only minor nice-to-haves
 - 60-79%: Decent match but has notable gaps in required skills or experience
@@ -549,7 +587,7 @@ Return exactly this JSON:
 def score_meta(score):
     if score >= 80:
         return "score-green", "🚀 Apply Immediately!", \
-               "Strong match — your profile aligns well. Submit your application right away!"
+               "Strong match - your profile aligns well. Submit your application right away!"
     elif score >= 60:
         return "score-amber", "🤔 Consider & Apply", \
                "Decent match but some gaps exist. Review the suggestions before applying."
@@ -693,7 +731,7 @@ def build_report_docx(score, gap, company):
     applicant = gap.get("applicant_name", "Applicant")
     date_str  = datetime.now().strftime("%B %d, %Y")
 
-    _doc_header(doc, "JobFit AI — Match Report", "AI-Powered Resume Analysis", applicant, company, date_str)
+    _doc_header(doc, "JobFit AI - Match Report", "AI-Powered Resume Analysis", applicant, company, date_str)
 
     _, label, advice = score_meta(score)
     if score >= 80:
@@ -779,7 +817,7 @@ def build_report_docx(score, gap, company):
         rb = p.add_run(s)
         rb.font.name = "Calibri"; rb.font.size = Pt(11)
 
-    _add_footer(doc, "JobFit AI — Confidential", f"Generated {date_str}")
+    _add_footer(doc, "JobFit AI - Confidential", f"Generated {date_str}")
 
     buf = io.BytesIO(); doc.save(buf); buf.seek(0)
     return buf.read()
@@ -930,6 +968,7 @@ def status_badge_class(status):
 # ══════════════════════════════════════════════════════════════════════════════
 # TOP BAR (outside tabs — always visible)
 # ══════════════════════════════════════════════════════════════════════════════
+st.markdown("<div style='height:0.8rem'></div>", unsafe_allow_html=True)
 col_title, col_user = st.columns([4, 1])
 with col_user:
     st.markdown(f"""
@@ -943,8 +982,16 @@ with col_user:
 # Hero
 st.markdown("""
 <div class="hero">
-    <h1>🎯 <span>JobFit AI</span></h1>
-    <p>Upload your resume &amp; job description — get a score, gap analysis, and a tailored cover letter instantly.</p>
+    <div class="hero-eyebrow">AI-Powered Resume Analysis</div>
+    <h1>JobFit AI</h1>
+    <p>Upload your resume &amp; job description - get a score, gap analysis, and a tailored cover letter instantly.</p>
+    <div class="hero-trust">
+        <span>Results in ~15 seconds</span>
+        <span>|</span>
+        <span>Your data stays private</span>
+        <span>|</span>
+        <span>Always free</span>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -1298,7 +1345,13 @@ with tab_applications:
         data = response.data
 
         if not data:
-            st.info("No applications saved yet. Analyze a job and hit **Save to Tracker** to see it here!")
+            st.markdown("""
+<div style="background:#ffffff; border:1px solid #d8dcea; border-radius:16px; padding:3rem 2rem; text-align:center; margin-top:1rem; box-shadow:0 2px 8px rgba(15,25,60,0.08);">
+    <div style="font-size:3rem; margin-bottom:1rem;">&#128229;</div>
+    <div style="font-size:1.2rem; font-weight:700; color:#0c1428; margin-bottom:0.5rem;">No applications yet</div>
+    <div style="color:#5a6a85; font-size:0.88rem; max-width:360px; margin:0 auto; line-height:1.6;">Head to the <strong>Analyze</strong> tab, run an analysis, and hit <strong>Save to Tracker</strong>.</div>
+</div>
+""", unsafe_allow_html=True)
         else:
             # ── Summary metrics ────────────────────────────────────────────
             total_apps    = len(data)
