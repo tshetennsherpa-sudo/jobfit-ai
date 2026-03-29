@@ -5,3 +5,4 @@ pypdf
 supabase
 pandas
 Authlib
+plotly
