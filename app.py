@@ -194,6 +194,12 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
 user_email = st.user.email or ""
 user_name  = st.user.name or "User"
 
+# ── Sleep state handler ───────────────────────────────────────────────────────
+if "app_initialized" not in st.session_state:
+    with st.spinner("⏳ Waking up — just a moment on first load..."):
+        time.sleep(1)
+    st.session_state["app_initialized"] = True
+
 # ── Supabase client (shared across all tabs) ──────────────────────────────────
 supabase = create_client(
     st.secrets["SUPABASE_URL"],
