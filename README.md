@@ -114,7 +114,13 @@ jobfit-ai/
 │   └── secrets.toml     # (local only, gitignored)
 └── README.md
 ```
+---
+## Screenshots
 
+![Landing Page](Screenshots/JobFit1.jpg.png)  
+![Results Screen](Screenshots/JobFit2.png)
+![Analyzed Screen](Screenshots/JobFit3.png)
+![Charts Screen](Screenshots/JobFit4.png)
 ---
 
 ## 🛠️ Tech Stack
