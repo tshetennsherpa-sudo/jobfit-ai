@@ -1482,7 +1482,7 @@ with tab_dashboard:
         df = pd.DataFrame(dash_data)
         df = df.copy()
         df.loc[:, "score"]        = pd.to_numeric(df["score"], errors="coerce").fillna(0)
-        df.loc[:, "date_applied"] = pd.to_datetime(df["date_applied"], errors="coerce")
+        df["date_applied"] = pd.to_datetime(df["date_applied"], errors="coerce")
 
         total_apps = len(df)
         avg_score  = round(df["score"].mean())
