@@ -117,10 +117,10 @@ jobfit-ai/
 ---
 ## Screenshots
 
-![Landing Page](Screenshots/JobFit1.jpg.png)  
-![Results Screen](Screenshots/JobFit2.png)
-![Analyzed Screen](Screenshots/JobFit3.png)
-![Charts Screen](Screenshots/JobFit4.png)
+![Landing Page](Screenshots/JobFit1.jpg)  
+![Results Screen](Screenshots/JobFit2.jpg)
+![Analyzed Screen](Screenshots/JobFit3.jpg)
+![Charts Screen](Screenshots/JobFit4.jpg)
 ---
 
 ## 🛠️ Tech Stack
